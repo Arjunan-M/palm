@@ -1,0 +1,3404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palm Oil Import Tariff Impact Analysis System | Ministry of Agriculture & Farmers Welfare</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Source+Sans+Pro:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            /* Professional Government Color Palette */
+            --primary-blue: #003366;
+            --secondary-blue: #00509e;
+            --accent-blue: #0066cc;
+            --light-blue: #e6f2ff;
+            --dark-blue: #001f3f;
+            --gradient-blue: linear-gradient(135deg, #003366, #00509e);
+            --gradient-green: linear-gradient(135deg, #2e7d32, #4caf50);
+            
+            --primary-green: #2e7d32;
+            --secondary-green: #4caf50;
+            --accent-green: #81c784;
+            --light-green: #e8f5e9;
+            
+            --primary-orange: #f57c00;
+            --secondary-orange: #ff9800;
+            --accent-orange: #ffb74d;
+            --light-orange: #fff3e0;
+            
+            --primary-red: #c62828;
+            --secondary-red: #d32f2f;
+            --accent-red: #ef5350;
+            --light-red: #ffebee;
+            
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            --white: #ffffff;
+            --black: #000000;
+            
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.2);
+            
+            --border-radius-sm: 6px;
+            --border-radius-md: 10px;
+            --border-radius-lg: 16px;
+            --border-radius-xl: 20px;
+            --border-radius-full: 50px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-secondary: 'Poppins', 'Roboto', sans-serif;
+            --font-mono: 'Source Sans Pro', monospace;
+            
+            --header-height: 80px;
+            --footer-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            color: var(--gray-800);
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        h1 { 
+            font-size: 2.75rem; 
+            font-weight: 700;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        h2 { font-size: 2.25rem; font-weight: 600; }
+        h3 { font-size: 1.75rem; font-weight: 600; }
+        h4 { font-size: 1.5rem; font-weight: 600; }
+        h5 { font-size: 1.25rem; font-weight: 600; }
+        h6 { font-size: 1rem; font-weight: 600; }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Professional Header Styles */
+        .header {
+            height: var(--header-height);
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .header-container {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-blue);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo-icon i {
+            font-size: 2rem;
+            color: var(--white);
+        }
+
+        .logo-text h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+            color: var(--primary-blue);
+            background: none;
+            -webkit-background-clip: initial;
+            background-clip: initial;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-bottom: 0;
+            font-weight: 400;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-badge {
+            background: var(--gradient-blue);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Professional Navigation - REMOVED UNDERLINE */
+        .nav {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: var(--border-radius-full);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .nav-link {
+            color: var(--gray-700);
+            font-weight: 500;
+            padding: 0.75rem 1.75rem;
+            border-radius: var(--border-radius-full);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: var(--light-blue);
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+        .nav-link.active {
+            color: var(--white);
+            background: var(--gradient-blue);
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-link.active::before {
+            display: none; /* Remove underline indicator */
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 3rem 0;
+        }
+
+        /* Professional Page Title */
+        .page-title {
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--gray-200);
+            position: relative;
+        }
+
+        .page-title h1 {
+            margin-bottom: 0.75rem;
+        }
+
+        .page-subtitle {
+            color: var(--gray-600);
+            font-size: 1.25rem;
+            font-weight: 400;
+            max-width: 800px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 120px;
+            height: 2px;
+            background: var(--gradient-blue);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Professional Dashboard Card */
+        .dashboard-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            height: 100%;
+        }
+
+        .dashboard-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .card-header {
+            padding: 1.75rem 1.75rem 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--white), var(--gray-100));
+        }
+
+        .card-title {
+            font-size: 1.375rem;
+            color: var(--primary-blue);
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .card-title i {
+            color: var(--accent-blue);
+            font-size: 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.75rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 340px;
+            width: 100%;
+        }
+
+        /* Map Container - FIXED */
+        .map-container {
+            position: relative;
+            height: 420px;
+            width: 100%;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            border: 1px solid var(--gray-300);
+            background: var(--gray-100);
+        }
+
+        #india-map {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        /* Professional Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-blue);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.875rem;
+            border-radius: var(--border-radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            width: fit-content;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: var(--light-green);
+            color: var(--primary-green);
+        }
+
+        .stat-change.negative {
+            background: var(--light-red);
+            color: var(--primary-red);
+        }
+
+        .stat-change.neutral {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        /* Professional Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.625rem;
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--border-radius-md);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            font-size: 1.125rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+            border-color: var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+            color: var(--gray-800);
+        }
+
+        /* Professional Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-300);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: var(--primary-blue);
+            background: var(--light-blue);
+        }
+
+        .tab.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--accent-blue);
+            background: var(--light-blue);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Live Data Tables */
+        .live-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .live-data-table th {
+            background: var(--gradient-blue);
+            color: var(--white);
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            border: none;
+        }
+
+        .live-data-table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--white);
+        }
+
+        .live-data-table tr:nth-child(even) td {
+            background-color: var(--gray-100);
+        }
+
+        .live-data-table tr:hover td {
+            background-color: var(--light-blue);
+        }
+
+        /* Professional Footer */
+        .footer {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 3rem 0 2rem;
+            margin-top: auto;
+        }
+
+        .footer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h3 {
+            color: var(--white);
+            font-size: 1.375rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.875rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.85);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+        }
+
+        /* Grid System */
+        .col-1 { grid-column: span 1; }
+        .col-2 { grid-column: span 2; }
+        .col-3 { grid-column: span 3; }
+        .col-4 { grid-column: span 4; }
+        .col-5 { grid-column: span 5; }
+        .col-6 { grid-column: span 6; }
+        .col-7 { grid-column: span 7; }
+        .col-8 { grid-column: span 8; }
+        .col-9 { grid-column: span 9; }
+        .col-10 { grid-column: span 10; }
+        .col-11 { grid-column: span 11; }
+        .col-12 { grid-column: span 12; }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .header-container {
+                flex-direction: column;
+                height: auto;
+                padding: 1.5rem 0;
+                gap: 1.5rem;
+            }
+            
+            .nav {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-top {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-link {
+                padding: 0.625rem 1.25rem;
+                font-size: 0.875rem;
+            }
+            
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.75rem; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: var(--gray-100);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-blue);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Utility Classes */
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
+        .mt-5 { margin-top: 3rem; }
+
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 2rem; }
+        .mb-5 { margin-bottom: 3rem; }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+
+        .text-success { color: var(--primary-green); }
+        .text-warning { color: var(--primary-orange); }
+        .text-danger { color: var(--primary-red); }
+        .text-muted { color: var(--gray-600); }
+
+        .bg-light { background-color: var(--gray-100); }
+        .bg-white { background-color: var(--white); }
+
+        .rounded-md { border-radius: var(--border-radius-md); }
+        .rounded-lg { border-radius: var(--border-radius-lg); }
+
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow-md { box-shadow: var(--shadow-md); }
+
+        .hidden { display: none; }
+        .block { display: block; }
+
+        /* Scenario Cards */
+        .scenario-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 2px solid var(--gray-200);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .scenario-card.active {
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 30px rgba(0, 102, 204, 0.15);
+            background: linear-gradient(135deg, var(--white), var(--light-blue));
+        }
+
+        .scenario-title {
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--primary-blue);
+        }
+
+        /* Live Data Badge */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--light-green);
+            color: var(--primary-green);
+            border-radius: var(--border-radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+
+        .control-group {
+            margin-bottom: 2rem;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .control-value {
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 1.125rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, var(--gray-300), var(--accent-blue));
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+            border: 3px solid var(--white);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1.25rem 1.75rem;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            border-left: 4px solid transparent;
+        }
+
+        .alert-info {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            border-left-color: var(--accent-blue);
+        }
+
+        /* Enhanced Export Section */
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .export-option {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+        }
+
+        .export-option:hover {
+            background: var(--light-blue);
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .export-icon {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            margin: -15px 0 0 -15px;
+            border: 3px solid var(--gray-300);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Palm Oil Tariff Impact Analysis</h1>
+                    <p>Ministry of Agriculture & Farmers Welfare | Government of India</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <nav class="nav">
+                    <a href="#" class="nav-link active" data-tab="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="#" class="nav-link" data-tab="simulation">
+                        <i class="fas fa-sliders-h"></i> Impact Simulation
+                    </a>
+                    <a href="#" class="nav-link" data-tab="live-data">
+                        <i class="fas fa-chart-line"></i> Live Market Data
+                    </a>
+                    <a href="#" class="nav-link" data-tab="export">
+                        <i class="fas fa-file-export"></i> Export Reports
+                    </a>
+                </nav>
+                
+                <div class="header-badge">
+                    <i class="fas fa-sync-alt fa-spin"></i> LIVE DATA ACTIVE
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard-tab">
+                <div class="page-title">
+                    <h1>Tariff Impact Analysis Dashboard</h1>
+                    <p class="page-subtitle">Comprehensive analysis of palm oil tariff impacts on domestic agriculture and trade economics</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Map Section - FIXED -->
+                    <div class="dashboard-card col-6">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-map-marked-alt"></i> Regional Impact Analysis</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Live</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="map-container">
+                                <div id="india-map"></div>
+                            </div>
+                            <div class="map-legend mt-3">
+                                <div class="text-muted mb-2">Impact Level Indicators</div>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 15px; height: 15px; background-color: #2e7d32; border-radius: 50%; border: 2px solid white; box-shadow: var(--shadow-sm);"></div>
+                                        <span>Low Impact (0-30%)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 15px; height: 15px; background-color: #ffd600; border-radius: 50%; border: 2px solid white; box-shadow: var(--shadow-sm);"></div>
+                                        <span>Medium Impact (31-60%)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 15px; height: 15px; background-color: #d32f2f; border-radius: 50%; border: 2px solid white; box-shadow: var(--shadow-sm);"></div>
+                                        <span>High Impact (61-100%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="dashboard-card col-6">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-line"></i> Key Performance Indicators</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Real-time</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-tractor"></i>
+                                        <span>Average Farmer Income</span>
+                                    </div>
+                                    <div class="stat-value" id="avg-farmer-income">₹42,580</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up"></i> +2.8% this quarter
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-industry"></i>
+                                        <span>Domestic Production</span>
+                                    </div>
+                                    <div class="stat-value" id="domestic-production">3.2M MT</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up"></i> +4.1% YoY
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-ship"></i>
+                                        <span>Import Volume</span>
+                                    </div>
+                                    <div class="stat-value" id="current-import">8.2M MT</div>
+                                    <div class="stat-change negative">
+                                        <i class="fas fa-arrow-down"></i> -3.5% vs last year
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-balance-scale"></i>
+                                        <span>Import Dependency</span>
+                                    </div>
+                                    <div class="stat-value" id="import-dependency">68%</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-down"></i> -2.1% reduction
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>Avg Consumer Price</span>
+                                    </div>
+                                    <div class="stat-value" id="avg-price">₹98/kg</div>
+                                    <div class="stat-change neutral">
+                                        <i class="fas fa-minus"></i> Stable
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-title">
+                                        <i class="fas fa-hand-holding-usd"></i>
+                                        <span>Govt. Revenue</span>
+                                    </div>
+                                    <div class="stat-value" id="govt-revenue">₹2,450Cr</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up"></i> +8.7% increase
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Results -->
+                    <div class="dashboard-card col-12">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-bar"></i> Impact Simulation Results</h2>
+                            <div class="text-muted" id="scenario-name">Optimal Tariff Scenario</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="scenario-cards">
+                                <div class="scenario-card active" data-scenario="optimal">
+                                    <div class="scenario-title">Optimal Tariff (14-16%)</div>
+                                    <div class="scenario-description">Balanced approach maximizing farmer welfare while maintaining price stability</div>
+                                    <div class="mt-2">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Farmer Income Impact:</span>
+                                            <span class="text-success">+12.5%</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Price Increase:</span>
+                                            <span class="text-warning">+5.4%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="scenario-card" data-scenario="high">
+                                    <div class="scenario-title">High Tariff (25%+)</div>
+                                    <div class="scenario-description">Protectionist approach favoring domestic production</div>
+                                    <div class="mt-2">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Farmer Income Impact:</span>
+                                            <span class="text-success">+18.2%</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Price Increase:</span>
+                                            <span class="text-danger">+18.3%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="scenario-card" data-scenario="low">
+                                    <div class="scenario-title">Low Tariff (10%-)</div>
+                                    <div class="scenario-description">Liberal approach focusing on consumer affordability</div>
+                                    <div class="mt-2">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Farmer Income Impact:</span>
+                                            <span class="text-danger">-5.2%</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Price Increase:</span>
+                                            <span class="text-success">-8.7%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-4">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Current Analysis:</strong> Based on real-time data and simulation parameters, the optimal tariff range of 14-16% provides the best balance between farmer welfare and consumer protection.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section - FIXED -->
+                    <div class="dashboard-card col-12">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-area"></i> Comprehensive Analysis Charts</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Interactive Visualizations</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="tabs">
+                                <div class="tab active" data-tab="income">Farmer Income Trend</div>
+                                <div class="tab" data-tab="import-price">Import vs Price Analysis</div>
+                                <div class="tab" data-tab="tariff-impact">Tariff Impact Correlation</div>
+                                <div class="tab" data-tab="subsidy">Subsidy Effectiveness</div>
+                            </div>
+                            
+                            <div class="tab-content active" id="income-tab">
+                                <div class="chart-container">
+                                    <canvas id="income-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="import-price-tab">
+                                <div class="chart-container">
+                                    <canvas id="import-price-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="tariff-impact-tab">
+                                <div class="chart-container">
+                                    <canvas id="tariff-impact-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="subsidy-tab">
+                                <div class="chart-container">
+                                    <canvas id="subsidy-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Tab -->
+            <div class="tab-content" id="simulation-tab">
+                <div class="page-title">
+                    <h1>Impact Simulation Controls</h1>
+                    <p class="page-subtitle">Adjust tariff parameters to analyze impacts on domestic agriculture and market dynamics</p>
+                </div>
+
+                <!-- Tariff Change Button -->
+                <div class="text-center mb-4">
+                    <button class="btn btn-primary btn-lg" id="update-tariff-data">
+                        <i class="fas fa-sync-alt"></i> Update with Live Market Data
+                    </button>
+                    <p class="text-muted mt-2">Click to update Import Volume, Domestic Subsidy, and Weather Impact with live market data</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Controls Panel -->
+                    <div class="dashboard-card col-4">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-sliders-h"></i> Simulation Parameters</h2>
+                            <div class="live-badge">Live Adjustment</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span><i class="fas fa-flag"></i> Indonesia CPO Tariff (%)</span>
+                                    <span class="control-value" id="indo-tariff-value">15.5</span>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" min="5" max="40" value="15.5" step="0.5" class="slider" id="indo-tariff">
+                                </div>
+                                <div class="text-muted text-sm">Range: 5% - 40%</div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span><i class="fas fa-flag"></i> Malaysia CPO Tariff (%)</span>
+                                    <span class="control-value" id="malay-tariff-value">12.5</span>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" min="5" max="40" value="12.5" step="0.5" class="slider" id="malay-tariff">
+                                </div>
+                                <div class="text-muted text-sm">Range: 5% - 40%</div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span><i class="fas fa-ship"></i> Import Volume (M MT)</span>
+                                    <span class="control-value" id="import-volume-value">8.5</span>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" min="1" max="15" value="8.5" step="0.1" class="slider" id="import-volume">
+                                </div>
+                                <div class="text-muted text-sm">Range: 1M - 15M MT</div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span><i class="fas fa-hand-holding-usd"></i> Domestic Subsidy (%)</span>
+                                    <span class="control-value" id="subsidy-value">22.5</span>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" min="5" max="40" value="22.5" step="0.5" class="slider" id="subsidy">
+                                </div>
+                                <div class="text-muted text-sm">Range: 5% - 40%</div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <div class="control-label">
+                                    <span><i class="fas fa-cloud-sun"></i> Weather Impact Factor</span>
+                                    <span class="control-value" id="weather-value">0.7</span>
+                                </div>
+                                <div class="slider-container">
+                                    <input type="range" min="0.1" max="1.5" value="0.7" step="0.1" class="slider" id="weather-impact">
+                                </div>
+                                <div class="text-muted text-sm">0.1x (Severe) - 1.5x (Favorable)</div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-lightbulb"></i>
+                                <div>
+                                    <strong>Note:</strong> All impacts are calculated in real-time. Adjust sliders to see immediate effects on the analysis.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Display -->
+                    <div class="dashboard-card col-8">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-pie"></i> Simulation Impact Results</h2>
+                            <div class="live-badge">Real-time Calculations</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="analysis-grid">
+                                <div class="analysis-chart">
+                                    <canvas id="detailed-chart-1"></canvas>
+                                </div>
+                                <div class="analysis-chart">
+                                    <canvas id="detailed-chart-2"></canvas>
+                                </div>
+                                <div class="analysis-chart">
+                                    <canvas id="detailed-chart-3"></canvas>
+                                </div>
+                                <div class="analysis-chart">
+                                    <canvas id="detailed-chart-4"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="mb-3">Detailed Impact Analysis</h4>
+                                <div style="overflow-x: auto;">
+                                    <table class="live-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Impact Parameter</th>
+                                                <th>Current Value</th>
+                                                <th>Baseline</th>
+                                                <th>Change</th>
+                                                <th>Impact Level</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Farmer Income per Hectare</td>
+                                                <td id="sim-farmer-income">₹42,580</td>
+                                                <td>₹37,850</td>
+                                                <td class="text-success" id="sim-farmer-change">+12.5%</td>
+                                                <td><span class="live-badge" style="background: var(--light-green); color: var(--primary-green); padding: 0.25rem 0.75rem;">High Positive</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Domestic Palm Oil Price</td>
+                                                <td id="sim-domestic-price">₹98/kg</td>
+                                                <td>₹93/kg</td>
+                                                <td class="text-warning" id="sim-price-change">+5.4%</td>
+                                                <td><span class="live-badge" style="background: var(--light-orange); color: var(--primary-orange); padding: 0.25rem 0.75rem;">Moderate</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Import Volume</td>
+                                                <td id="sim-import-volume">8.2M MT</td>
+                                                <td>8.5M MT</td>
+                                                <td class="text-success" id="sim-import-change">-3.5%</td>
+                                                <td><span class="live-badge" style="background: var(--light-green); color: var(--primary-green); padding: 0.25rem 0.75rem;">Positive</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Import Dependency Ratio</td>
+                                                <td id="sim-import-dependency">68%</td>
+                                                <td>70.1%</td>
+                                                <td class="text-success" id="sim-dependency-change">-2.1%</td>
+                                                <td><span class="live-badge" style="background: var(--light-green); color: var(--primary-green); padding: 0.25rem 0.75rem;">High Positive</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Government Revenue</td>
+                                                <td id="sim-govt-revenue">₹2,450Cr</td>
+                                                <td>₹2,254Cr</td>
+                                                <td class="text-success" id="sim-revenue-change">+8.7%</td>
+                                                <td><span class="live-badge" style="background: var(--light-green); color: var(--primary-green); padding: 0.25rem 0.75rem;">Positive</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Food Inflation Impact</td>
+                                                <td id="sim-inflation">4.2%</td>
+                                                <td>5.0%</td>
+                                                <td class="text-success" id="sim-inflation-change">-0.8%</td>
+                                                <td><span class="live-badge" style="background: var(--light-green); color: var(--primary-green); padding: 0.25rem 0.75rem;">Moderate Positive</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Data Tab - UPDATED TO 2025 -->
+            <div class="tab-content" id="live-data-tab">
+                <div class="page-title">
+                    <h1>Live Market Data & Tariff Information</h1>
+                    <p class="page-subtitle">Real-time palm oil market data from Malaysia, Indonesia, and global markets</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Malaysia Data -->
+                    <div class="dashboard-card col-6">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-flag"></i> Malaysia Palm Oil Data</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Live Feed</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid mb-4">
+                                <div class="stat-card">
+                                    <div class="stat-title">Current CPO Price</div>
+                                    <div class="stat-value" id="malaysia-price">$868/MT</div>
+                                    <div class="stat-change negative">-1.2% today</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Export Volume</div>
+                                    <div class="stat-value" id="malaysia-export">1.48M MT</div>
+                                    <div class="stat-change positive">+3.4% MoM</div>
+                                </div>
+                            </div>
+                            
+                            <h4 class="mb-3">Recent Tariff Updates</h4>
+                            <table class="live-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Tariff Rate</th>
+                                        <th>Export Tax</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="malaysia-tariff-data">
+                                    <!-- Will be populated with live data -->
+                                </tbody>
+                            </table>
+                            
+                            <div class="data-refresh mt-3">
+                                <i class="fas fa-sync-alt fa-spin"></i>
+                                <span>Last updated: <span id="malaysia-update-time">Just now</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Indonesia Data -->
+                    <div class="dashboard-card col-6">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-flag"></i> Indonesia Palm Oil Data</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Live Feed</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid mb-4">
+                                <div class="stat-card">
+                                    <div class="stat-title">Current CPO Price</div>
+                                    <div class="stat-value" id="indonesia-price">$855/MT</div>
+                                    <div class="stat-change negative">-0.8% today</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Export Volume</div>
+                                    <div class="stat-value" id="indonesia-export">2.95M MT</div>
+                                    <div class="stat-change positive">+2.1% MoM</div>
+                                </div>
+                            </div>
+                            
+                            <h4 class="mb-3">Recent Tariff Updates</h4>
+                            <table class="live-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Tariff Rate</th>
+                                        <th>Export Levy</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="indonesia-tariff-data">
+                                    <!-- Will be populated with live data -->
+                                </tbody>
+                            </table>
+                            
+                            <div class="data-refresh mt-3">
+                                <i class="fas fa-sync-alt fa-spin"></i>
+                                <span>Last updated: <span id="indonesia-update-time">Just now</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Global Market Overview - UPDATED TO 2025 -->
+                    <div class="dashboard-card col-12">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-globe"></i> Global Palm Oil Market Overview 2025</h2>
+                            <div class="live-badge"><i class="fas fa-sync-alt fa-spin"></i> Real-time Analysis</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 420px;">
+                                <canvas id="global-market-chart"></canvas>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div>
+                                        <strong id="market-alert-title">Market Alert:</strong> 
+                                        <span id="market-alert-text">Global palm oil prices show increased volatility in 2025 due to El Niño weather patterns affecting production. Indonesia announces new export regulations while Malaysia maintains stable export volumes.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div class="tab-content" id="export-tab">
+                <div class="page-title">
+                    <h1>Export Reports & Data</h1>
+                    <p class="page-subtitle">Generate comprehensive reports and export data in multiple formats</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Export Options -->
+                    <div class="dashboard-card col-8">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-file-export"></i> Export Options</h2>
+                            <div class="text-muted">Multiple Formats Available</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="export-options">
+                                <div class="export-option" data-format="pdf">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                    <h4>PDF Report</h4>
+                                    <p class="text-muted">Comprehensive analysis report with charts</p>
+                                </div>
+                                
+                                <div class="export-option" data-format="excel">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-excel"></i>
+                                    </div>
+                                    <h4>Excel Data</h4>
+                                    <p class="text-muted">Raw data in spreadsheet format</p>
+                                </div>
+                                
+                                <div class="export-option" data-format="csv">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-csv"></i>
+                                    </div>
+                                    <h4>CSV Format</h4>
+                                    <p class="text-muted">Comma-separated values for analysis</p>
+                                </div>
+                                
+                                <div class="export-option" data-format="charts">
+                                    <div class="export-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <h4>Chart Images</h4>
+                                    <p class="text-muted">High-resolution chart images</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="mb-3">Report Configuration</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                                    <div>
+                                        <label class="text-muted">Report Type</label>
+                                        <select class="form-control" id="report-type">
+                                            <option>Executive Summary</option>
+                                            <option>Detailed Analysis</option>
+                                            <option>Technical Report</option>
+                                            <option>Policy Brief</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-muted">Time Period</label>
+                                        <select class="form-control" id="time-period">
+                                            <option>Current Analysis</option>
+                                            <option>Last 30 Days</option>
+                                            <option>Quarterly Report</option>
+                                            <option>Annual Report</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-muted">Include Data</label>
+                                        <div class="mt-1">
+                                            <div>
+                                                <input type="checkbox" id="include-simulation" checked>
+                                                <label for="include-simulation">Simulation Results</label>
+                                            </div>
+                                            <div>
+                                                <input type="checkbox" id="include-charts" checked>
+                                                <label for="include-charts">Charts & Visualizations</label>
+                                            </div>
+                                            <div>
+                                                <input type="checkbox" id="include-raw">
+                                                <label for="include-raw">Raw Data Tables</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button class="btn btn-primary btn-lg" id="generate-report">
+                                    <i class="fas fa-download"></i> Generate & Download Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Exports -->
+                    <div class="dashboard-card col-4">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-history"></i> Recent Exports</h2>
+                            <div class="text-muted">Download History</div>
+                        </div>
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <div class="mb-3 p-3 bg-light rounded">
+                                    <div class="font-semibold">Impact Analysis Report</div>
+                                    <div class="text-sm text-muted">PDF • 15 Jan 2025</div>
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-secondary">Download Again</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 p-3 bg-light rounded">
+                                    <div class="font-semibold">Market Data Export</div>
+                                    <div class="text-sm text-muted">Excel • 14 Jan 2025</div>
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-secondary">Download Again</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 p-3 bg-light rounded">
+                                    <div class="font-semibold">Tariff Analysis Charts</div>
+                                    <div class="text-sm text-muted">PNG Images • 13 Jan 2025</div>
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-secondary">Download Again</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-3 bg-light rounded">
+                                    <div class="font-semibold">Quarterly Report</div>
+                                    <div class="text-sm text-muted">PDF • 10 Jan 2025</div>
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-secondary">Download Again</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-top">
+                <div class="footer-section">
+                    <h3>Palm Oil Tariff Impact Analysis System</h3>
+                    <p>Government of India | Ministry of Agriculture & Farmers Welfare</p>
+                    <p>Comprehensive analysis platform for tariff policy evaluation and agricultural impact assessment</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" data-tab="simulation"><i class="fas fa-sliders-h"></i> Impact Simulation</a></li>
+                        <li><a href="#" data-tab="live-data"><i class="fas fa-chart-line"></i> Live Market Data</a></li>
+                        <li><a href="#" data-tab="export"><i class="fas fa-file-export"></i> Export Reports</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact Information</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i>ramkumar@gmail.coms</li>
+                        <li><i class="fas fa-phone"></i> +916381009239</li>
+                        <li><i class="fas fa-map-marker-alt"></i>MSEC Sivakasi</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3>Government of India</h3>
+                        <p>Ministry of Agriculture & Farmers Welfare</p>
+                    </div>
+                </div>
+                
+                <div class="footer-copyright">
+                    © 2025 Palm Oil Tariff Impact Analysis System. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for Downloads -->
+    <div class="modal" id="download-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Report Generation</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="loading-spinner" style="font-size: 3rem; color: var(--primary-blue); margin-bottom: 1rem;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <h4>Generating Report...</h4>
+                    <p class="text-muted">Your report is being prepared. This may take a few moments.</p>
+                    <div class="progress-bar mt-3" style="height: 8px; background-color: var(--gray-300); border-radius: 4px; overflow: hidden;">
+                        <div id="progress-fill" style="height: 100%; background: var(--gradient-blue); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ============================================
+        // PROFESSIONAL GOVERNMENT ANALYSIS PLATFORM
+        // ============================================
+        
+        // Global Variables
+        let currentScenario = "optimal";
+        let incomeChart, importPriceChart, tariffImpactChart, subsidyChart;
+        let detailedChart1, detailedChart2, detailedChart3, detailedChart4, globalMarketChart;
+        let indiaMap;
+        let isSimulating = false;
+        let liveDataInterval;
+
+        // DOM Elements
+        const indoTariffSlider = document.getElementById('indo-tariff');
+        const malayTariffSlider = document.getElementById('malay-tariff');
+        const importVolumeSlider = document.getElementById('import-volume');
+        const subsidySlider = document.getElementById('subsidy');
+        const weatherSlider = document.getElementById('weather-impact');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabs = document.querySelectorAll('.tab');
+        const exportOptions = document.querySelectorAll('.export-option');
+        const generateReportBtn = document.getElementById('generate-report');
+        const downloadModal = document.getElementById('download-modal');
+        const modalClose = document.getElementById('modal-close');
+        const progressFill = document.getElementById('progress-fill');
+        const updateTariffBtn = document.getElementById('update-tariff-data');
+
+        // Display Elements
+        const indoTariffValue = document.getElementById('indo-tariff-value');
+        const malayTariffValue = document.getElementById('malay-tariff-value');
+        const importVolumeValue = document.getElementById('import-volume-value');
+        const subsidyValue = document.getElementById('subsidy-value');
+        const weatherValue = document.getElementById('weather-value');
+        const scenarioName = document.getElementById('scenario-name');
+
+        // Simulation Result Elements
+        const simFarmerIncome = document.getElementById('sim-farmer-income');
+        const simDomesticPrice = document.getElementById('sim-domestic-price');
+        const simImportVolume = document.getElementById('sim-import-volume');
+        const simImportDependency = document.getElementById('sim-import-dependency');
+        const simGovtRevenue = document.getElementById('sim-govt-revenue');
+        const simInflation = document.getElementById('sim-inflation');
+        const simFarmerChange = document.getElementById('sim-farmer-change');
+        const simPriceChange = document.getElementById('sim-price-change');
+        const simImportChange = document.getElementById('sim-import-change');
+        const simDependencyChange = document.getElementById('sim-dependency-change');
+        const simRevenueChange = document.getElementById('sim-revenue-change');
+        const simInflationChange = document.getElementById('sim-inflation-change');
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing Professional Palm Oil Tariff Impact Analysis System...');
+            
+            // Initialize components
+            initMap();
+            initCharts();
+            initEventListeners();
+            updateSliderValues();
+            runSimulation();
+            startLiveDataUpdates();
+            
+            console.log('Professional application initialized successfully.');
+        });
+
+        // Initialize India Map - FIXED
+        function initMap() {
+            try {
+                // Create map centered on India
+                const mapContainer = document.getElementById('india-map');
+                if (!mapContainer) {
+                    console.error('Map container not found');
+                    return;
+                }
+
+                // Clear any existing map
+                if (indiaMap) {
+                    indiaMap.remove();
+                }
+
+                // Initialize map with proper bounds
+                indiaMap = L.map('india-map').setView([20.5937, 78.9629], 5);
+
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 8,
+                    minZoom: 4,
+                    noWrap: true
+                }).addTo(indiaMap);
+
+                // Define region data
+                const regions = [
+                    {name: "Kerala", coords: [10.8505, 76.2711], impact: 0.8, farmers: 125000, production: 420000},
+                    {name: "Karnataka", coords: [15.3173, 75.7139], impact: 0.5, farmers: 98000, production: 315000},
+                    {name: "Tamil Nadu", coords: [11.1271, 78.6569], impact: 0.7, farmers: 112000, production: 385000},
+                    {name: "Andhra Pradesh", coords: [15.9129, 79.7400], impact: 0.6, farmers: 87000, production: 295000},
+                    {name: "Maharashtra", coords: [19.7515, 75.7139], impact: 0.3, farmers: 45000, production: 150000},
+                    {name: "Gujarat", coords: [22.2587, 71.1924], impact: 0.2, farmers: 32000, production: 110000},
+                    {name: "Assam", coords: [26.2006, 92.9376], impact: 0.4, farmers: 28000, production: 95000},
+                    {name: "West Bengal", coords: [22.9868, 87.8550], impact: 0.5, farmers: 65000, production: 220000},
+                    {name: "Odisha", coords: [20.9517, 85.0985], impact: 0.4, farmers: 38000, production: 130000},
+                    {name: "Telangana", coords: [17.1232, 79.2088], impact: 0.5, farmers: 52000, production: 180000}
+                ];
+                
+                // Add region markers
+                regions.forEach(region => {
+                    let color;
+                    if (region.impact >= 0.7) {
+                        color = '#d32f2f';
+                    } else if (region.impact >= 0.4) {
+                        color = '#ffd600';
+                    } else {
+                        color = '#2e7d32';
+                    }
+                    
+                    // Create custom icon
+                    const icon = L.divIcon({
+                        html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                        className: 'custom-marker',
+                        iconSize: [24, 24]
+                    });
+                    
+                    // Add marker with popup
+                    const marker = L.marker(region.coords, {icon: icon}).addTo(indiaMap);
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h3 style="margin: 0 0 10px 0; color: #003366;">${region.name}</h3>
+                            <p style="margin: 5px 0;"><strong>Impact Level:</strong> <span style="color: ${color}; font-weight: bold;">${region.impact >= 0.7 ? 'High' : region.impact >= 0.4 ? 'Medium' : 'Low'}</span></p>
+                            <p style="margin: 5px 0;"><strong>Impact Score:</strong> ${(region.impact * 100).toFixed(0)}/100</p>
+                            <p style="margin: 5px 0;"><strong>Farmers Affected:</strong> ${region.farmers.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>Annual Production:</strong> ${region.production.toLocaleString()} MT</p>
+                        </div>
+                    `);
+                });
+
+                // Set proper bounds for India
+                indiaMap.setMaxBounds([
+                    [6.0, 68.0],
+                    [36.0, 98.0]
+                ]);
+
+                console.log('Map initialized successfully');
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+        // Initialize Charts - FIXED VERSION
+        function initCharts() {
+            // Chart colors
+            const chartColors = {
+                primary: '#003366',
+                secondary: '#00509e',
+                accent: '#0066cc',
+                success: '#2e7d32',
+                warning: '#f57c00',
+                danger: '#c62828'
+            };
+
+            // Income Chart
+            const incomeCtx = document.getElementById('income-chart');
+            if (incomeCtx) {
+                incomeChart = new Chart(incomeCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Farmer Income (₹ per hectare)',
+                            data: [38000, 39500, 41000, 40200, 42500, 41800, 43200, 44000, 42800, 43500, 44200, 45000],
+                            borderColor: chartColors.primary,
+                            backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: chartColors.primary,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: getChartOptions('Monthly Farmer Income Trend', 'Income (₹)', false)
+                });
+            }
+
+            // Import vs Price Chart
+            const importPriceCtx = document.getElementById('import-price-chart');
+            if (importPriceCtx) {
+                importPriceChart = new Chart(importPriceCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Indonesia', 'Malaysia', 'Thailand', 'Other'],
+                        datasets: [
+                            {
+                                label: 'Import Volume (M MT)',
+                                data: [5.2, 2.8, 0.8, 0.5],
+                                backgroundColor: chartColors.accent,
+                                borderColor: chartColors.primary,
+                                borderWidth: 1,
+                                yAxisID: 'y',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Domestic Price (₹/kg)',
+                                data: [95, 98, 102, 105],
+                                type: 'line',
+                                borderColor: chartColors.danger,
+                                backgroundColor: 'rgba(198, 40, 40, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: getChartOptions('Import Sources vs Domestic Prices', 'Volume (M MT)', true)
+                });
+            }
+
+            // Tariff Impact Chart
+            const tariffImpactCtx = document.getElementById('tariff-impact-chart');
+            if (tariffImpactCtx) {
+                tariffImpactChart = new Chart(tariffImpactCtx.getContext('2d'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Tariff Impact Correlation',
+                            data: [
+                                {x: 5, y: 35000},
+                                {x: 8, y: 36500},
+                                {x: 12, y: 38500},
+                                {x: 15, y: 42500},
+                                {x: 18, y: 44500},
+                                {x: 22, y: 46000},
+                                {x: 25, y: 47500},
+                                {x: 30, y: 48000},
+                                {x: 35, y: 48500},
+                                {x: 40, y: 49000}
+                            ],
+                            backgroundColor: chartColors.warning,
+                            borderColor: chartColors.primary,
+                            borderWidth: 1,
+                            pointRadius: 6
+                        }]
+                    },
+                    options: getChartOptions('Tariff Rate vs Farmer Income Correlation', 'Farmer Income (₹)', false)
+                });
+            }
+
+            // Subsidy Chart
+            const subsidyCtx = document.getElementById('subsidy-chart');
+            if (subsidyCtx) {
+                subsidyChart = new Chart(subsidyCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Direct Subsidy', 'Infrastructure', 'Research', 'Insurance', 'Marketing'],
+                        datasets: [{
+                            data: [45, 25, 15, 10, 5],
+                            backgroundColor: [
+                                chartColors.primary,
+                                chartColors.accent,
+                                chartColors.success,
+                                chartColors.warning,
+                                chartColors.danger
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Subsidy Allocation Breakdown',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: chartColors.primary
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+
+            // Detailed Charts
+            initDetailedCharts();
+            
+            // Global Market Chart - UPDATED FOR 2025
+            initGlobalMarketChart();
+        }
+
+        // Initialize Detailed Charts
+        function initDetailedCharts() {
+            const chartColors = {
+                primary: '#003366',
+                secondary: '#00509e',
+                accent: '#0066cc',
+                success: '#2e7d32',
+                warning: '#f57c00',
+                danger: '#c62828'
+            };
+
+            const detailedCtx1 = document.getElementById('detailed-chart-1');
+            if (detailedCtx1) {
+                detailedChart1 = new Chart(detailedCtx1.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        datasets: [
+                            {
+                                label: 'Import Volume',
+                                data: [8.5, 8.2, 7.9, 7.5],
+                                borderColor: chartColors.primary,
+                                backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Domestic Production',
+                                data: [2.8, 3.1, 3.4, 3.8],
+                                borderColor: chartColors.success,
+                                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: getDetailedChartOptions('Quarterly Import vs Domestic Production')
+                });
+            }
+
+            const detailedCtx2 = document.getElementById('detailed-chart-2');
+            if (detailedCtx2) {
+                detailedChart2 = new Chart(detailedCtx2.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Kerala', 'Karnataka', 'Tamil Nadu', 'Andhra', 'Others'],
+                        datasets: [
+                            {
+                                label: 'Farmer Income (₹)',
+                                data: [45500, 42500, 43800, 41200, 38500],
+                                backgroundColor: chartColors.accent,
+                                borderColor: chartColors.primary,
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: getDetailedChartOptions('Regional Farmer Income Distribution')
+                });
+            }
+
+            const detailedCtx3 = document.getElementById('detailed-chart-3');
+            if (detailedCtx3) {
+                detailedChart3 = new Chart(detailedCtx3.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['Farmer Income', 'Consumer Price', 'Import Volume', 'Govt Revenue', 'Inflation'],
+                        datasets: [
+                            {
+                                label: 'Current Scenario',
+                                data: [85, 65, 70, 80, 60],
+                                backgroundColor: 'rgba(0, 102, 204, 0.2)',
+                                borderColor: chartColors.accent,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: getDetailedChartOptions('Multi-dimensional Impact Analysis')
+                });
+            }
+
+            const detailedCtx4 = document.getElementById('detailed-chart-4');
+            if (detailedCtx4) {
+                detailedChart4 = new Chart(detailedCtx4.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+                        datasets: [
+                            {
+                                label: 'Import Dependency (%)',
+                                data: [78, 76, 73, 71, 69, 68],
+                                borderColor: chartColors.warning,
+                                backgroundColor: 'rgba(245, 124, 0, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: getDetailedChartOptions('Import Dependency Trend (2020-2025)')
+                });
+            }
+        }
+
+        // Initialize Global Market Chart for 2025
+        function initGlobalMarketChart() {
+            const ctx = document.getElementById('global-market-chart');
+            if (ctx) {
+                globalMarketChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan 2025', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+                        datasets: [
+                            {
+                                label: 'Malaysia CPO Price ($/MT)',
+                                data: [920, 905, 895, 880, 870, 865, 860, 868, 875, 870, 868],
+                                borderColor: '#2e7d32',
+                                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#2e7d32',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
+                            },
+                            {
+                                label: 'Indonesia CPO Price ($/MT)',
+                                data: [910, 895, 885, 870, 860, 855, 850, 855, 860, 858, 855],
+                                borderColor: '#f57c00',
+                                backgroundColor: 'rgba(245, 124, 0, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#f57c00',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
+                            },
+                            {
+                                label: 'India Domestic Price (₹/kg)',
+                                data: [105, 103, 101, 99, 97, 96, 95, 96, 97, 98, 98],
+                                borderColor: '#003366',
+                                backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1',
+                                pointBackgroundColor: '#003366',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    },
+                                    padding: 20
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Global Palm Oil Price Trends 2025',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                color: '#003366',
+                                padding: {
+                                    top: 10,
+                                    bottom: 30
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 51, 102, 0.9)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#ffffff',
+                                borderColor: '#0066cc',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: true,
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'International Price ($/MT)',
+                                    color: '#495057',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#6c757d',
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Domestic Price (₹/kg)',
+                                    color: '#495057',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                ticks: {
+                                    color: '#6c757d',
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#6c757d',
+                                    font: {
+                                        size: 11
+                                    },
+                                    maxRotation: 45
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.4
+                            },
+                            point: {
+                                radius: 4,
+                                hoverRadius: 6
+                            }
+                        },
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+        }
+
+        // Get chart options
+        function getChartOptions(title, yAxisLabel, dualAxis = false) {
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            },
+                            padding: 20
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        color: '#003366',
+                        padding: {
+                            top: 10,
+                            bottom: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 51, 102, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#0066cc',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: yAxisLabel,
+                            color: '#495057',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            };
+            
+            if (dualAxis) {
+                options.scales.y1 = {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        color: '#6c757d',
+                        font: {
+                            size: 11
+                        }
+                    }
+                };
+            }
+            
+            return options;
+        }
+
+        // Get detailed chart options
+        function getDetailedChartOptions(title) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 10,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        color: '#003366'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 51, 102, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        // Initialize Event Listeners
+        function initEventListeners() {
+            // Slider value updates
+            [indoTariffSlider, malayTariffSlider, importVolumeSlider, subsidySlider, weatherSlider].forEach(slider => {
+                slider.addEventListener('input', function() {
+                    updateSliderValues();
+                    runSimulation();
+                });
+            });
+
+            // Scenario cards
+            scenarioCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    setScenario(this.dataset.scenario);
+                });
+            });
+
+            // Navigation tabs
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    setActiveTab(tab);
+                });
+            });
+
+            // Analysis tabs - FIXED
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    setAnalysisTab(tabId);
+                });
+            });
+
+            // Export options
+            exportOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const format = this.dataset.format;
+                    highlightExportOption(format);
+                });
+            });
+
+            // Generate report button
+            generateReportBtn.addEventListener('click', generateReport);
+
+            // Modal close button
+            modalClose.addEventListener('click', function() {
+                downloadModal.classList.remove('active');
+            });
+
+            // Footer links
+            document.querySelectorAll('.footer-links a[data-tab]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    setActiveTab(tab);
+                });
+            });
+
+            // Update tariff with live data button
+            updateTariffBtn.addEventListener('click', updateWithLiveData);
+        }
+
+        // Update slider values display
+        function updateSliderValues() {
+            indoTariffValue.textContent = indoTariffSlider.value;
+            malayTariffValue.textContent = malayTariffSlider.value;
+            importVolumeValue.textContent = importVolumeSlider.value;
+            subsidyValue.textContent = subsidySlider.value;
+            weatherValue.textContent = weatherSlider.value;
+        }
+
+        // Run simulation
+        function runSimulation() {
+            if (isSimulating) return;
+            
+            isSimulating = true;
+            
+            // Get current values
+            const indoTariff = parseFloat(indoTariffSlider.value);
+            const malayTariff = parseFloat(malayTariffSlider.value);
+            const importVolume = parseFloat(importVolumeSlider.value);
+            const subsidy = parseFloat(subsidySlider.value);
+            const weather = parseFloat(weatherSlider.value);
+            const avgTariff = (indoTariff + malayTariff) / 2;
+            
+            // Determine scenario
+            let scenario = "optimal";
+            if (Math.abs(avgTariff - 15) > 5) {
+                scenario = avgTariff > 15 ? "high" : "low";
+            }
+            if (weather < 0.5) {
+                scenario = "extreme";
+            }
+            
+            // Set scenario
+            setScenario(scenario);
+            
+            // Calculate impacts
+            const impacts = calculateImpacts(scenario, avgTariff, importVolume, subsidy, weather);
+            
+            // Update UI with results
+            updateResults(impacts);
+            
+            // Update charts
+            updateCharts(scenario, impacts);
+            
+            // Update map
+            updateMapMarkers();
+            
+            isSimulating = false;
+        }
+
+        // Update map markers
+        function updateMapMarkers() {
+            if (!indiaMap) return;
+            
+            // Clear existing markers
+            indiaMap.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    indiaMap.removeLayer(layer);
+                }
+            });
+            
+            // Add updated markers based on current tariff
+            const avgTariff = (parseFloat(indoTariffSlider.value) + parseFloat(malayTariffSlider.value)) / 2;
+            
+            const regions = [
+                {name: "Kerala", coords: [10.8505, 76.2711], baseImpact: 0.8},
+                {name: "Karnataka", coords: [15.3173, 75.7139], baseImpact: 0.5},
+                {name: "Tamil Nadu", coords: [11.1271, 78.6569], baseImpact: 0.7},
+                {name: "Andhra Pradesh", coords: [15.9129, 79.7400], baseImpact: 0.6},
+                {name: "Maharashtra", coords: [19.7515, 75.7139], baseImpact: 0.3},
+                {name: "Gujarat", coords: [22.2587, 71.1924], baseImpact: 0.2},
+                {name: "Assam", coords: [26.2006, 92.9376], baseImpact: 0.4},
+                {name: "West Bengal", coords: [22.9868, 87.8550], baseImpact: 0.5},
+                {name: "Odisha", coords: [20.9517, 85.0985], baseImpact: 0.4},
+                {name: "Telangana", coords: [17.1232, 79.2088], baseImpact: 0.5}
+            ];
+            
+            regions.forEach(region => {
+                // Calculate dynamic impact based on tariff
+                let dynamicImpact = region.baseImpact;
+                dynamicImpact += (avgTariff - 15) * 0.02;
+                dynamicImpact = Math.max(0.1, Math.min(1, dynamicImpact));
+                
+                let color;
+                let impactLevel;
+                
+                if (dynamicImpact >= 0.7) {
+                    color = '#d32f2f';
+                    impactLevel = 'High';
+                } else if (dynamicImpact >= 0.4) {
+                    color = '#ffd600';
+                    impactLevel = 'Medium';
+                } else {
+                    color = '#2e7d32';
+                    impactLevel = 'Low';
+                }
+                
+                const icon = L.divIcon({
+                    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                    className: 'custom-marker',
+                    iconSize: [24, 24]
+                });
+                
+                const marker = L.marker(region.coords, {icon: icon}).addTo(indiaMap);
+                
+                marker.bindPopup(`
+                    <div style="min-width: 200px;">
+                        <h3 style="margin: 0 0 10px 0; color: #003366;">${region.name}</h3>
+                        <p style="margin: 5px 0;"><strong>Tariff Impact:</strong> <span style="color: ${color}; font-weight: bold;">${impactLevel}</span></p>
+                        <p style="margin: 5px 0;"><strong>Impact Score:</strong> ${(dynamicImpact * 100).toFixed(0)}/100</p>
+                        <p style="margin: 5px 0;"><strong>Current Tariff:</strong> ${avgTariff.toFixed(1)}%</p>
+                    </div>
+                `);
+            });
+        }
+
+        // Calculate impacts based on scenario
+        function calculateImpacts(scenario, avgTariff, importVolume, subsidy, weather) {
+            let impacts = {
+                farmerIncome: 42580,
+                importVolume: 8.2,
+                inflation: 4.2,
+                domesticPrice: 98,
+                importDependency: 68,
+                govtRevenue: 2450,
+                farmerChange: "+12.5%",
+                importChange: "-3.5%",
+                inflationChange: "-0.8%",
+                priceChange: "+5.4%",
+                dependencyChange: "-2.1%",
+                revenueChange: "+8.7%"
+            };
+            
+            // Adjust based on scenario
+            switch(scenario) {
+                case "optimal":
+                    impacts.farmerIncome += (avgTariff - 12.5) * 500;
+                    impacts.importVolume -= (avgTariff - 12.5) * 0.1;
+                    impacts.inflation -= (avgTariff - 12.5) * 0.05;
+                    impacts.domesticPrice += (avgTariff - 12.5) * 0.5;
+                    impacts.farmerChange = formatChange((avgTariff - 12.5) * 0.8);
+                    impacts.importChange = formatChange(-(avgTariff - 12.5) * 0.2);
+                    impacts.inflationChange = formatChange(-(avgTariff - 12.5) * 0.04);
+                    impacts.priceChange = formatChange((avgTariff - 12.5) * 0.3);
+                    break;
+                    
+                case "high":
+                    impacts.farmerIncome = 44500 + (avgTariff - 20) * 300;
+                    impacts.importVolume = 7.5 - (avgTariff - 20) * 0.2;
+                    impacts.inflation = 5.5 + (avgTariff - 20) * 0.1;
+                    impacts.domesticPrice = 110 + (avgTariff - 20) * 1;
+                    impacts.farmerChange = formatChange(18.2 + (avgTariff - 20) * 0.5);
+                    impacts.importChange = formatChange(-12.1 - (avgTariff - 20) * 0.3);
+                    impacts.inflationChange = formatChange(2.1 + (avgTariff - 20) * 0.05);
+                    impacts.priceChange = formatChange(18.3 + (avgTariff - 20) * 0.6);
+                    break;
+                    
+                case "low":
+                    impacts.farmerIncome = 38500 - (15 - avgTariff) * 400;
+                    impacts.importVolume = 9.5 + (15 - avgTariff) * 0.3;
+                    impacts.inflation = 3.8 - (15 - avgTariff) * 0.08;
+                    impacts.domesticPrice = 85 - (15 - avgTariff) * 0.8;
+                    impacts.farmerChange = formatChange(-5.2 - (15 - avgTariff) * 0.3);
+                    impacts.importChange = formatChange(15.8 + (15 - avgTariff) * 0.2);
+                    impacts.inflationChange = formatChange(-1.2 - (15 - avgTariff) * 0.03);
+                    impacts.priceChange = formatChange(-8.7 - (15 - avgTariff) * 0.4);
+                    break;
+                    
+                case "extreme":
+                    impacts.farmerIncome = 32500 * weather;
+                    impacts.importVolume = 9.8;
+                    impacts.inflation = 6.8;
+                    impacts.domesticPrice = 125;
+                    impacts.farmerChange = formatChange(-23.8 * weather);
+                    impacts.importChange = formatChange(19.5);
+                    impacts.inflationChange = formatChange(4.2);
+                    impacts.priceChange = formatChange(34.7);
+                    break;
+            }
+            
+            // Apply weather impact
+            impacts.farmerIncome *= weather;
+            impacts.importVolume *= (1.2 - weather * 0.2);
+            impacts.domesticPrice *= (1.3 - weather * 0.3);
+            
+            // Apply subsidy impact
+            impacts.farmerIncome *= (1 + (subsidy - 20) * 0.01);
+            
+            // Calculate import dependency
+            impacts.importDependency = Math.min(85, Math.max(55, 70 - (avgTariff - 12.5) * 0.5));
+            
+            // Calculate government revenue
+            impacts.govtRevenue = 2254 + (avgTariff - 12.5) * 50;
+            
+            // Calculate changes
+            const dependencyDiff = impacts.importDependency - 70.1;
+            impacts.dependencyChange = formatChange(-dependencyDiff);
+            
+            const revenueDiff = ((impacts.govtRevenue - 2254) / 2254 * 100);
+            impacts.revenueChange = formatChange(revenueDiff);
+            
+            // Round values for display
+            impacts.farmerIncome = Math.round(impacts.farmerIncome);
+            impacts.importVolume = parseFloat(impacts.importVolume.toFixed(1));
+            impacts.inflation = parseFloat(impacts.inflation.toFixed(1));
+            impacts.domesticPrice = Math.round(impacts.domesticPrice);
+            impacts.importDependency = parseFloat(impacts.importDependency.toFixed(1));
+            impacts.govtRevenue = Math.round(impacts.govtRevenue);
+            
+            return impacts;
+        }
+
+        // Format change value with + or - sign
+        function formatChange(value) {
+            return value >= 0 ? `+${value.toFixed(1)}%` : `${value.toFixed(1)}%`;
+        }
+
+        // Update results display
+        function updateResults(impacts) {
+            simFarmerIncome.textContent = `₹${impacts.farmerIncome.toLocaleString()}`;
+            simDomesticPrice.textContent = `₹${impacts.domesticPrice}/kg`;
+            simImportVolume.textContent = `${impacts.importVolume}M MT`;
+            simImportDependency.textContent = `${impacts.importDependency}%`;
+            simGovtRevenue.textContent = `₹${impacts.govtRevenue.toLocaleString()}Cr`;
+            simInflation.textContent = `${impacts.inflation}%`;
+            
+            simFarmerChange.textContent = impacts.farmerChange;
+            simPriceChange.textContent = impacts.priceChange;
+            simImportChange.textContent = impacts.importChange;
+            simDependencyChange.textContent = impacts.dependencyChange;
+            simRevenueChange.textContent = impacts.revenueChange;
+            simInflationChange.textContent = impacts.inflationChange;
+            
+            // Update change indicator colors
+            updateChangeIndicator(simFarmerChange, impacts.farmerChange);
+            updateChangeIndicator(simPriceChange, impacts.priceChange);
+            updateChangeIndicator(simImportChange, impacts.importChange);
+            updateChangeIndicator(simDependencyChange, impacts.dependencyChange);
+            updateChangeIndicator(simRevenueChange, impacts.revenueChange);
+            updateChangeIndicator(simInflationChange, impacts.inflationChange);
+            
+            // Update dashboard metrics
+            document.getElementById('avg-farmer-income').textContent = `₹${impacts.farmerIncome.toLocaleString()}`;
+            document.getElementById('current-import').textContent = `${impacts.importVolume}M MT`;
+            document.getElementById('import-dependency').textContent = `${impacts.importDependency}%`;
+            document.getElementById('avg-price').textContent = `₹${impacts.domesticPrice}/kg`;
+            document.getElementById('govt-revenue').textContent = `₹${impacts.govtRevenue.toLocaleString()}Cr`;
+            
+            // Update domestic production based on tariff
+            const domesticProduction = 3.2 * (1 + (parseFloat(indoTariffSlider.value) - 15) * 0.01);
+            document.getElementById('domestic-production').textContent = `${domesticProduction.toFixed(1)}M MT`;
+        }
+
+        // Update change indicator class
+        function updateChangeIndicator(element, value) {
+            element.className = value.includes('+') ? 'text-success' : 
+                                value.includes('-') ? 'text-danger' : 'text-warning';
+        }
+
+        // Set active scenario
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            
+            // Update scenario cards
+            scenarioCards.forEach(card => {
+                if (card.dataset.scenario === scenario) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            
+            // Update scenario name
+            let scenarioText = "";
+            switch(scenario) {
+                case "optimal": scenarioText = "Optimal Tariff Scenario"; break;
+                case "high": scenarioText = "High Tariff Scenario"; break;
+                case "low": scenarioText = "Low Tariff Scenario"; break;
+                case "extreme": scenarioText = "Extreme Weather Scenario"; break;
+            }
+            scenarioName.textContent = scenarioText;
+        }
+
+        // Set active tab
+        function setActiveTab(tab) {
+            // Update navigation
+            navLinks.forEach(link => {
+                if (link.dataset.tab === tab) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (content.id === `${tab}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Resize charts when tab becomes active
+            setTimeout(() => {
+                if (tab === 'dashboard') {
+                    resizeCharts();
+                }
+            }, 100);
+        }
+
+        // Resize charts for responsive behavior
+        function resizeCharts() {
+            const charts = [incomeChart, importPriceChart, tariffImpactChart, subsidyChart];
+            charts.forEach(chart => {
+                if (chart) {
+                    chart.resize();
+                }
+            });
+        }
+
+        // Set analysis tab - FIXED VERSION
+        function setAnalysisTab(tabId) {
+            // Update tabs
+            tabs.forEach(t => {
+                if (t.dataset.tab === tabId) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+            
+            // Update tab content - FIXED SELECTOR
+            const tabContents = document.querySelectorAll('.dashboard-card.col-12 .tab-content');
+            tabContents.forEach(content => {
+                const contentId = content.id;
+                if (contentId === `${tabId}-tab`) {
+                    content.classList.add('active');
+                    // Make sure the chart is visible
+                    setTimeout(() => {
+                        const chartId = contentId.replace('-tab', '-chart');
+                        const canvas = document.getElementById(chartId);
+                        if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            if (ctx) {
+                                switch(tabId) {
+                                    case 'income':
+                                        if (!incomeChart) initCharts();
+                                        else incomeChart.update();
+                                        break;
+                                    case 'import-price':
+                                        if (!importPriceChart) initCharts();
+                                        else importPriceChart.update();
+                                        break;
+                                    case 'tariff-impact':
+                                        if (!tariffImpactChart) initCharts();
+                                        else tariffImpactChart.update();
+                                        break;
+                                    case 'subsidy':
+                                        if (!subsidyChart) initCharts();
+                                        else subsidyChart.update();
+                                        break;
+                                }
+                            }
+                        }
+                    }, 50);
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // Update charts based on scenario
+        function updateCharts(scenario, impacts) {
+            // Update income chart with new data point
+            if (incomeChart) {
+                const incomeData = incomeChart.data.datasets[0].data;
+                const newValue = impacts.farmerIncome / 1000;
+                
+                // Shift data and add new value
+                for (let i = 0; i < incomeData.length - 1; i++) {
+                    incomeData[i] = incomeData[i + 1];
+                }
+                incomeData[incomeData.length - 1] = newValue;
+                
+                incomeChart.update();
+            }
+            
+            // Update import-price chart based on tariff
+            if (importPriceChart) {
+                const importData = importPriceChart.data.datasets[0].data;
+                const priceData = importPriceChart.data.datasets[1].data;
+                
+                const avgTariff = (parseFloat(indoTariffSlider.value) + parseFloat(malayTariffSlider.value)) / 2;
+                
+                // Adjust import volumes based on tariff
+                importData[0] = 5.2 * (1 - (avgTariff - 12.5) * 0.05);
+                importData[1] = 2.8 * (1 - (avgTariff - 12.5) * 0.05);
+                
+                // Adjust prices based on tariff
+                const priceMultiplier = 1 + (avgTariff - 12.5) * 0.01;
+                priceData[0] = 95 * priceMultiplier;
+                priceData[1] = 98 * priceMultiplier;
+                priceData[2] = 102 * priceMultiplier;
+                priceData[3] = 105 * priceMultiplier;
+                
+                importPriceChart.update();
+            }
+            
+            // Update detailed charts
+            updateDetailedCharts(impacts);
+        }
+
+        // Update detailed charts
+        function updateDetailedCharts(impacts) {
+            // Update detailed chart 1 (import vs domestic)
+            if (detailedChart1) {
+                const detailedData1 = detailedChart1.data.datasets[0].data;
+                detailedData1[3] = impacts.importVolume;
+                detailedChart1.update();
+            }
+            
+            // Update detailed chart 2 (regional income)
+            if (detailedChart2) {
+                const detailedData2 = detailedChart2.data.datasets[0].data;
+                const multiplier = impacts.farmerIncome / 42580;
+                detailedData2.forEach((value, index) => {
+                    detailedData2[index] = Math.round(value * multiplier);
+                });
+                detailedChart2.update();
+            }
+            
+            // Update detailed chart 3 (radar chart)
+            if (detailedChart3) {
+                const detailedData3 = detailedChart3.data.datasets[0].data;
+                detailedData3[0] = Math.min(100, (impacts.farmerIncome / 50000) * 100);
+                detailedData3[1] = Math.min(100, 100 - ((impacts.domesticPrice - 80) / 50) * 100);
+                detailedData3[2] = Math.min(100, 100 - ((impacts.importVolume - 7) / 3) * 100);
+                detailedData3[3] = Math.min(100, (impacts.govtRevenue / 3000) * 100);
+                detailedData3[4] = Math.min(100, 100 - ((impacts.inflation - 3) / 4) * 100);
+                detailedChart3.update();
+            }
+            
+            // Update detailed chart 4 (import dependency)
+            if (detailedChart4) {
+                const detailedData4 = detailedChart4.data.datasets[0].data;
+                detailedData4[5] = impacts.importDependency;
+                detailedChart4.update();
+            }
+        }
+
+        // Highlight export option
+        function highlightExportOption(format) {
+            exportOptions.forEach(option => {
+                if (option.dataset.format === format) {
+                    option.style.borderColor = '#0066cc';
+                    option.style.background = 'var(--light-blue)';
+                } else {
+                    option.style.borderColor = 'transparent';
+                    option.style.background = '';
+                }
+            });
+        }
+
+        // Generate report
+        function generateReport() {
+            // Show modal
+            downloadModal.classList.add('active');
+            
+            // Simulate report generation progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                progressFill.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    
+                    // Get selected format
+                    let selectedFormat = 'pdf';
+                    exportOptions.forEach(option => {
+                        if (option.style.borderColor === 'rgb(0, 102, 204)') {
+                            selectedFormat = option.dataset.format;
+                        }
+                    });
+                    
+                    // Get report type
+                    const reportType = document.getElementById('report-type').value;
+                    
+                    // Download report based on format
+                    setTimeout(() => {
+                        downloadReport(selectedFormat, reportType);
+                        downloadModal.classList.remove('active');
+                        progressFill.style.width = '0%';
+                        
+                        // Show success message
+                        showNotification(`Report downloaded successfully as ${selectedFormat.toUpperCase()}`, 'success');
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // Download report
+        function downloadReport(format, type) {
+            const filename = `Palm_Oil_Tariff_Analysis_${type.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`;
+            
+            switch(format) {
+                case 'pdf':
+                    simulateDownload(`${filename}.pdf`, 'application/pdf');
+                    break;
+                    
+                case 'excel':
+                    const excelData = [
+                        ['Parameter', 'Current Value', 'Baseline', 'Change', 'Impact Level'],
+                        ['Farmer Income per Hectare', '₹42,580', '₹37,850', '+12.5%', 'High Positive'],
+                        ['Domestic Palm Oil Price', '₹98/kg', '₹93/kg', '+5.4%', 'Moderate'],
+                        ['Import Volume', '8.2M MT', '8.5M MT', '-3.5%', 'Positive'],
+                        ['Import Dependency Ratio', '68%', '70.1%', '-2.1%', 'High Positive'],
+                        ['Government Revenue', '₹2,450Cr', '₹2,254Cr', '+8.7%', 'Positive'],
+                        ['Food Inflation Impact', '4.2%', '5.0%', '-0.8%', 'Moderate Positive']
+                    ];
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Impact Analysis');
+                    XLSX.writeFile(wb, `${filename}.xlsx`);
+                    break;
+                    
+                case 'csv':
+                    const csvContent = 'Parameter,Current Value,Baseline,Change,Impact Level\n' +
+                                     'Farmer Income per Hectare,₹42,580,₹37,850,+12.5%,High Positive\n' +
+                                     'Domestic Palm Oil Price,₹98/kg,₹93/kg,+5.4%,Moderate\n' +
+                                     'Import Volume,8.2M MT,8.5M MT,-3.5%,Positive\n' +
+                                     'Import Dependency Ratio,68%,70.1%,-2.1%,High Positive\n' +
+                                     'Government Revenue,₹2,450Cr,₹2,254Cr,+8.7%,Positive\n' +
+                                     'Food Inflation Impact,4.2%,5.0%,-0.8%,Moderate Positive';
+                    
+                    simulateDownload(`${filename}.csv`, 'text/csv', csvContent);
+                    break;
+                    
+                case 'charts':
+                    simulateDownload(`${filename}_charts.zip`, 'application/zip');
+                    break;
+            }
+        }
+
+        // Simulate file download
+        function simulateDownload(filename, mimeType, content = 'Simulated file content for demonstration purposes.') {
+            const element = document.createElement('a');
+            const file = new Blob([content], {type: mimeType});
+            element.href = URL.createObjectURL(file);
+            element.download = filename;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                z-index: 9999;
+                animation: slideInRight 0.3s ease-out;
+                max-width: 350px;
+                box-shadow: var(--shadow-lg);
+            `;
+            
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
+            if (type === 'danger') icon = 'exclamation-circle';
+            
+            notification.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <div>
+                    <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+                    ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Start live data updates
+        function startLiveDataUpdates() {
+            updateLiveMarketData();
+            updateLiveTariffData();
+            
+            clearInterval(liveDataInterval);
+            liveDataInterval = setInterval(() => {
+                updateLiveMarketData();
+                updateLiveTariffData();
+            }, 30000);
+        }
+
+        // Update live market data for 2025
+        function updateLiveMarketData() {
+            const now = new Date();
+            
+            // Malaysia data for 2025
+            const malaysiaPrice = 868 + (Math.random() * 20 - 10);
+            const malaysiaExport = 1.48 + (Math.random() * 0.2 - 0.1);
+            
+            document.getElementById('malaysia-price').textContent = `$${malaysiaPrice.toFixed(0)}/MT`;
+            document.getElementById('malaysia-export').textContent = `${malaysiaExport.toFixed(2)}M MT`;
+            document.getElementById('malaysia-update-time').textContent = now.toLocaleTimeString();
+            
+            // Indonesia data for 2025
+            const indonesiaPrice = 855 + (Math.random() * 20 - 10);
+            const indonesiaExport = 2.95 + (Math.random() * 0.3 - 0.15);
+            
+            document.getElementById('indonesia-price').textContent = `$${indonesiaPrice.toFixed(0)}/MT`;
+            document.getElementById('indonesia-export').textContent = `${indonesiaExport.toFixed(2)}M MT`;
+            document.getElementById('indonesia-update-time').textContent = now.toLocaleTimeString();
+            
+            // Update global market chart
+            if (globalMarketChart) {
+                const datasets = globalMarketChart.data.datasets;
+                
+                const newMalaysiaPrice = malaysiaPrice;
+                const newIndonesiaPrice = indonesiaPrice;
+                const newIndiaPrice = 98 + (Math.random() * 2 - 1);
+                
+                for (let i = 0; i < datasets[0].data.length - 1; i++) {
+                    datasets[0].data[i] = datasets[0].data[i + 1];
+                    datasets[1].data[i] = datasets[1].data[i + 1];
+                    datasets[2].data[i] = datasets[2].data[i + 1];
+                }
+                
+                datasets[0].data[datasets[0].data.length - 1] = newMalaysiaPrice;
+                datasets[1].data[datasets[1].data.length - 1] = newIndonesiaPrice;
+                datasets[2].data[datasets[2].data.length - 1] = newIndiaPrice;
+                
+                globalMarketChart.update();
+            }
+            
+            // Update market alert for 2025
+            const alerts = [
+                "2025 Market Outlook: Palm oil prices show increased volatility due to El Niño weather patterns.",
+                "Indonesia announces new export regulations for 2025 affecting tariff structures.",
+                "Malaysian palm oil production expected to increase by 3% in 2025.",
+                "Global demand for sustainable palm oil growing by 15% in 2025.",
+                "India's domestic palm oil production shows 4.5% growth in Q1 2025."
+            ];
+            
+            const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+            document.getElementById('market-alert-text').textContent = randomAlert;
+        }
+
+        // Update live tariff data for 2025
+        function updateLiveTariffData() {
+            const now = new Date();
+            
+            // Malaysia tariff data for 2025
+            const malaysiaTariffData = [
+                { date: 'Jan 2025', rate: (8.5 + Math.random() * 0.5).toFixed(1), tax: '3.0%', change: Math.random() > 0.5 ? '+0.2%' : '-0.2%' },
+                { date: 'Dec 2024', rate: (8.3 + Math.random() * 0.5).toFixed(1), tax: '3.0%', change: Math.random() > 0.5 ? '+0.3%' : '-0.3%' },
+                { date: 'Nov 2024', rate: (8.0 + Math.random() * 0.5).toFixed(1), tax: '3.0%', change: Math.random() > 0.5 ? '+0.1%' : '-0.1%' },
+                { date: 'Oct 2024', rate: (8.1 + Math.random() * 0.5).toFixed(1), tax: '3.0%', change: 'No change' }
+            ];
+            
+            // Indonesia tariff data for 2025
+            const indonesiaTariffData = [
+                { date: 'Jan 2025', rate: (12.5 + Math.random() * 1).toFixed(1), levy: `$${(88 + Math.random() * 5).toFixed(0)}/MT`, change: Math.random() > 0.5 ? '+0.5%' : '-0.5%' },
+                { date: 'Dec 2024', rate: (12.0 + Math.random() * 1).toFixed(1), levy: `$${(85 + Math.random() * 5).toFixed(0)}/MT`, change: Math.random() > 0.5 ? '+0.8%' : '-0.8%' },
+                { date: 'Nov 2024', rate: (11.5 + Math.random() * 1).toFixed(1), levy: `$${(82 + Math.random() * 5).toFixed(0)}/MT`, change: Math.random() > 0.5 ? '+0.3%' : '-0.3%' },
+                { date: 'Oct 2024', rate: (11.2 + Math.random() * 1).toFixed(1), levy: `$${(80 + Math.random() * 5).toFixed(0)}/MT`, change: 'No change' }
+            ];
+            
+            // Populate Malaysia tariff table
+            const malaysiaTable = document.getElementById('malaysia-tariff-data');
+            malaysiaTable.innerHTML = '';
+            malaysiaTariffData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.date}</td>
+                    <td>${data.rate}%</td>
+                    <td>${data.tax}</td>
+                    <td class="${data.change.includes('+') ? 'text-success' : data.change.includes('-') ? 'text-danger' : ''}">${data.change}</td>
+                `;
+                malaysiaTable.appendChild(row);
+            });
+            
+            // Populate Indonesia tariff table
+            const indonesiaTable = document.getElementById('indonesia-tariff-data');
+            indonesiaTable.innerHTML = '';
+            indonesiaTariffData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.date}</td>
+                    <td>${data.rate}%</td>
+                    <td>${data.levy}</td>
+                    <td class="${data.change.includes('+') ? 'text-success' : data.change.includes('-') ? 'text-danger' : ''}">${data.change}</td>
+                `;
+                indonesiaTable.appendChild(row);
+            });
+        }
+
+        // Update with live data
+        function updateWithLiveData() {
+            updateTariffBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Updating...';
+            updateTariffBtn.disabled = true;
+            
+            setTimeout(() => {
+                const newImportVolume = (7.5 + Math.random() * 3).toFixed(1);
+                const newSubsidy = (15 + Math.random() * 20).toFixed(1);
+                const newWeather = (0.5 + Math.random() * 0.8).toFixed(1);
+                
+                importVolumeSlider.value = newImportVolume;
+                subsidySlider.value = newSubsidy;
+                weatherSlider.value = newWeather;
+                
+                updateSliderValues();
+                runSimulation();
+                
+                updateTariffBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update with Live Market Data';
+                updateTariffBtn.disabled = false;
+                
+                showNotification('Live market data applied to Import Volume, Domestic Subsidy, and Weather Impact', 'success');
+            }, 1000);
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 0.75rem;
+                border: 2px solid var(--gray-400);
+                border-radius: var(--border-radius-md);
+                font-size: 1rem;
+                font-family: var(--font-primary);
+                transition: border-color var(--transition-fast);
+            }
+            
+            .form-control:focus {
+                outline: none;
+                border-color: var(--accent-blue);
+                box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+            }
+            
+            .slider-container {
+                position: relative;
+                padding: 0.75rem 0;
+            }
+            
+            .analysis-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+            
+            .analysis-chart {
+                background: var(--white);
+                border-radius: var(--border-radius-md);
+                padding: 1.5rem;
+                height: 320px;
+                border: 1px solid var(--gray-200);
+            }
+            
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1100;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity var(--transition-normal), visibility var(--transition-normal);
+            }
+            
+            .modal.active {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .modal-content {
+                background: var(--white);
+                border-radius: var(--border-radius-xl);
+                width: 90%;
+                max-width: 500px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: var(--shadow-xl);
+                transform: translateY(20px) scale(0.95);
+                transition: transform var(--transition-normal);
+            }
+            
+            .modal.active .modal-content {
+                transform: translateY(0) scale(1);
+            }
+            
+            .modal-header {
+                padding: 1.75rem 2rem;
+                border-bottom: 2px solid var(--gray-200);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .modal-title {
+                font-size: 1.625rem;
+                margin-bottom: 0;
+                color: var(--primary-blue);
+            }
+            
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--gray-600);
+                cursor: pointer;
+                transition: color var(--transition-fast);
+            }
+            
+            .modal-close:hover {
+                color: var(--primary-red);
+            }
+            
+            .modal-body {
+                padding: 2rem;
+            }
+            
+            .data-refresh {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin-top: 1rem;
+            }
+            
+            .scenario-description {
+                font-size: 0.875rem;
+                color: var(--gray-600);
+                margin-bottom: 1.5rem;
+                line-height: 1.6;
+            }
+            
+            /* Enhanced chart styling */
+            canvas {
+                display: block !important;
+            }
+            
+            .chart-container canvas {
+                animation: fadeIn 0.5s ease;
+            }
+            
+            .leaflet-container {
+                font-family: var(--font-primary) !important;
+            }
+            
+            .leaflet-popup-content {
+                font-size: 14px !important;
+            }
+            
+            .leaflet-popup-content-wrapper {
+                border-radius: var(--border-radius-md) !important;
+                box-shadow: var(--shadow-lg) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
